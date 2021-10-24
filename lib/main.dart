@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
-import 'package:english_words/english_words.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'board.dart';
 
 void main() => runApp(MyApp());
 
@@ -34,12 +34,16 @@ class Chessboard extends StatefulWidget {
 }
 
 class _ChessboardState extends State<Chessboard> {
+  var _board = Board();
+  int? _iTap = null;
+  int? _jTap = null;
+
   @override
   Widget build(BuildContext context) {
-
-    var squares = <Container>[];
+    var squares = <GestureDetector>[];
     var light = Color(0xFFEEEDD3);
     var dark =  Color(0xFF7C9B5F);
+    var hilite = Colors.red;
     bool isLight = true;
 
     for (int i = 0; i < 8; i++) {
@@ -47,21 +51,33 @@ class _ChessboardState extends State<Chessboard> {
       for (int j = 0; j < 8; j++) {
         // Determine what piece to place here
         var child;
-        if (i < 2 || i > 5) {
-          var color = (i < 2) ? 'd' : 'l';
-          var piece;
-          if (i == 1 || i == 6) {
-            piece = 'p';
-          } else {
-            const pieces = ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'];
-            piece = pieces[j];
-          }
-          child = SvgPicture.asset('assets/images/Chess_' + piece + color + 't45.svg');
+        if (_board[i][j] != Piece.empty) {
+          var pieceColor = _board[i][j].toString().substring(6);
+          child = SvgPicture.asset('assets/images/Chess_' + pieceColor + 't45.svg');
         }
-        var square = Container(
-            padding: const EdgeInsets.all(0),
-            child: child,
-            color: isSqLight ? light : dark);
+        var color;
+        if (i == _iTap && j == _jTap) {
+          color = hilite;
+        } else {
+          color = isSqLight ? light : dark;
+        }
+        var square = GestureDetector(
+            child: Container(
+              padding: const EdgeInsets.all(0),
+              child: child,
+              color: color),
+            onTap: () {
+              setState(() {
+                if (_iTap == i && _jTap == j) {
+                  _iTap = null;
+                  _jTap = null;
+                } else {
+                  _iTap = i;
+                  _jTap = j;
+                }
+              });
+            }
+            );
         isSqLight = !isSqLight;
         squares.add(square);
       }
