@@ -37,6 +37,7 @@ class _ChessboardState extends State<Chessboard> {
   var _board = Board();
   int? _iTap = null;
   int? _jTap = null;
+  Piece? _pieceTap = null;
   List<Move>? _validMoves = null;
 
   @override
@@ -52,32 +53,45 @@ class _ChessboardState extends State<Chessboard> {
       for (int j = 0; j < 8; j++) {
         Coord c = Coord(i, j);
         Piece p = _board.get(i, j);
-        SvgPicture? child;
+
+        // Get the image for the piece if the square is occupied
+        SvgPicture? image;
         if (p != Piece.empty) {
-          child = SvgPicture.asset(p.svgImage);
+          image = SvgPicture.asset(p.svgImage);
         }
+
+        // Determine the background color for the square, higlighting
+        // the square that was tapped if any
         Color color;
         if (i == _iTap && j == _jTap) {
           color = hilite;
-        } else if (_validMoves != null && _validMoves!.contains(c)) {
-          color = Colors.yellow;
         } else {
           color = isSqLight ? light : dark;
         }
+
+        EdgeInsetsGeometry? padding;
+        if (_validMoves != null && _validMoves!.containsToSquare(c)) {
+          image = SvgPicture.asset(_pieceTap!.svgImage);
+          padding = EdgeInsets.all(10);
+        }
+
         var square = GestureDetector(
             child: Container(
-              padding: const EdgeInsets.all(0),
-              child: child,
+              margin: const EdgeInsets.all(0),
+              padding: padding,
+              child: image,
               color: color),
             onTap: () {
               setState(() {
                 if (_iTap == i && _jTap == j) {
                   _iTap = null;
                   _jTap = null;
+                  _pieceTap = null;
                   _validMoves = null;
                 } else {
                   _iTap = i;
                   _jTap = j;
+                  _pieceTap = _board.get(i, j);
                   _validMoves = _board.validMoves(i, j);
                 }
               });
