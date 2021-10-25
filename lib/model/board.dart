@@ -1,6 +1,8 @@
 // Representation of boards and moves
 
+import 'dart:math';
 import 'piece.dart';
+import 'move_generator.dart';
 
 class Coord {
   int i, j;
@@ -36,5 +38,39 @@ class Board {
     _squares[toI][toJ] = p;
     _squares[fromI][fromJ] = Piece.empty;
     return true;
+  }
+
+  bool hasAdjacentKing(int i, int j, PieceColor color) {
+    for (int ii = max(i-1, 0); ii < min(i+2, 8); ii++) {
+      for (int jj = max(j-1, 0); jj < min(j+2, 8); jj++) {
+        if (ii != i || jj != j) {
+          Piece p = get(ii, jj);
+          if (p.color == color && p.isKing) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  bool hasThreat(int i, int j, PieceColor opponentColor) {
+    // Generate all non-pawn moves from this square. If any of the generated moves
+    // is a capture, then we can capture them which means they can capture us...
+    if (rookMoves(i, j, asColor: opponentColor).containsCapture() ||
+        bishopMoves(i, j, asColor: opponentColor).containsCapture() ||
+        knightMoves(i, j, asColor: opponentColor).containsCapture()) {
+      return true;
+    }
+
+    // Calculate pawn backwards from potential capturing square
+    int direction = opponentColor == PieceColor.light ? -1 : 1;
+    if (pawnCaptures(i-direction, j-1, opponentColor).containsCapture() ||
+        pawnCaptures(i-direction, j+1, opponentColor).containsCapture()) {
+      return true;
+    }
+
+    // Treat threat from king specially
+    return hasAdjacentKing(i, j, opponentColor);
   }
 }

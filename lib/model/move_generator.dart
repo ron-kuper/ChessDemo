@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'piece.dart';
 import 'board.dart';
 
@@ -26,6 +27,7 @@ class Move {
 
 extension MoveList on List<Move> {
   bool containsToSquare(Coord c) => any( (m) => m.to.equals(c) );
+  bool containsCapture() => any( (m) => m.isCapture );
 
   Move? getMoveToSquare(Coord c) {
     Move? m;
@@ -51,7 +53,10 @@ extension MoveList on List<Move> {
 
 extension MoveGenerator on Board {
   // Returns a move, capture or null depending on what's in the target square
-  Move? makeMove(Coord from, int toI, int toJ, { bool forCapture = false }) {
+  Move? makeMove(Coord from,
+                 int toI, int toJ,
+                 { bool forCapture = false,
+                   PieceColor asColor = PieceColor.none }) {
     if (!Coord.isValid(toI, toJ)) {
       return null;
     } else {
@@ -62,10 +67,14 @@ extension MoveGenerator on Board {
         } else {
           return null;
         }
-      } else if (pTo.isDark != get(from.i, from.j).isDark) {
-        return Move.capture(from, Coord(toI, toJ));
       } else {
-        return null;
+        PieceColor toColor = pTo.color;
+        PieceColor fromColor = (asColor == PieceColor.none) ? get(from.i, from.j).color : asColor;
+        if (fromColor != toColor) {
+          return Move.capture(from, Coord(toI, toJ));
+        } else {
+          return null;
+        }
       }
     }
   }
@@ -86,55 +95,66 @@ extension MoveGenerator on Board {
       } else if (p.isRook) {
         ret = rookMoves(i, j);
       } else if (p.isPawn) {
-        ret = pawnMoves(i, j, p.isLight);
+        ret = pawnMoves(i, j, p.color);
+        ret.addAll(pawnCaptures(i, j, p.color));
       }
     }
     return ret;
   }
 
   // Moves for pawns
-  List<Move> pawnMoves(int i, int j, bool isLight) {
+  List<Move> pawnMoves(int i, int j, PieceColor asColor) {
     List<Move> ret = <Move>[];
     Coord from = Coord(i, j);
-    int direction = isLight ? -1 : 1;
+    bool isLight = (asColor == PieceColor.light);
+    int direction = asColor == PieceColor.light ? -1 : 1;
     // 1 square forward move
-    ret.appendMove(makeMove(from, i+direction, j));
+    ret.appendMove(makeMove(from, i + direction, j));
     // 2 square forward move
     if ((isLight && i == 6) || (!isLight && i == 1)) {
-      ret.appendMove(makeMove(from, i+direction+direction, j));
+      ret.appendMove(makeMove(from, i + direction + direction, j));
     }
-    // Capture left
-    ret.appendMove(makeMove(from, i+direction, j-1, forCapture: true));
-    // Capture right
-    ret.appendMove(makeMove(from, i+direction, j+1, forCapture: true));
+    return ret;
+  }
+
+  List<Move> pawnCaptures(int i, int j, PieceColor asColor) {
+    List<Move> ret = <Move>[];
+    if (Coord.isValid(i, j)) {
+      Coord from = Coord(i, j);
+      int direction = asColor == PieceColor.light ? -1 : 1;
+      // Capture left
+      ret.appendMove(makeMove(from, i + direction, j - 1, forCapture: true));
+      // Capture right
+      ret.appendMove(makeMove(from, i + direction, j + 1, forCapture: true));
+    }
     return ret;
   }
 
   // Moves for rooks (and queens)
-  List<Move> rookMoves(int i, int j) {
+  List<Move> rookMoves(int i, int j, { PieceColor asColor = PieceColor.none }) {
     List<Move> ret = <Move>[];
     Coord from = Coord(i, j);
     // Scan right
     for (int jj = j+1; jj < 8; jj++) {
-      if (!ret.appendMove(makeMove(from, i, jj))) {
+      if (!ret.appendMove(makeMove(from, i, jj, asColor: asColor))) {
         break;
       }
     }
     // Scan left
     for (int jj = j-1; jj >= 0; jj--) {
-      if (!ret.appendMove(makeMove(from, i, jj))) {
+      if (!ret.appendMove(makeMove(from, i, jj, asColor: asColor))) {
         break;
       }
     }
     // Scan down
     for (int ii = i+1; ii < 8; ii++) {
-      if (!ret.appendMove(makeMove(from, ii, j))) {
+      if (!ret.appendMove(makeMove(from, ii, j, asColor: asColor))) {
         break;
       }
     }
     // Scan up
     for (int ii = i-1; ii >= 0; ii--) {
-      if (!ret.appendMove(makeMove(from, ii, j))) {
+      if (!ret.appendMove(makeMove(from, ii, j, asColor: asColor))) {
         break;
       }
     }
@@ -142,7 +162,7 @@ extension MoveGenerator on Board {
   }
 
   // Moves for bishops (and queens)
-  List<Move> bishopMoves(int i, int j) {
+  List<Move> bishopMoves(int i, int j, { PieceColor asColor = PieceColor.none }) {
     List<Move> ret = <Move>[];
     Coord from = Coord(i, j);
     // Scan 4 diagonals
@@ -160,7 +180,7 @@ extension MoveGenerator on Board {
   }
 
   // Moves for knights
-  List<Move> knightMoves(int i, int j) {
+  List<Move> knightMoves(int i, int j, { PieceColor asColor = PieceColor.none }) {
     List<Move> ret = <Move>[];
     Coord from = Coord(i, j);
     for (int dx = -2; dx <= 2; dx += 4) {
@@ -173,8 +193,20 @@ extension MoveGenerator on Board {
   }
 
   // Kings can't move into check, so this one is extra special...
-  List<Move> kingValidMoves(int i, int j) {
+  List<Move> kingValidMoves(int i, int j, { PieceColor asColor = PieceColor.none }) {
+    Coord from = Coord(i, j);
+    PieceColor myColor = (asColor == PieceColor.none) ? get(i, j).color : asColor;
+    PieceColor opponentColor = (myColor == PieceColor.light) ? PieceColor.dark : PieceColor.light;
     List<Move> ret = <Move>[];
+    for (int ii = max(i-1, 0); ii < min(i+2, 8); ii++) {
+      for (int jj = max(j-1, 0); jj < min(j+2, 8); jj++) {
+        if (ii != i || jj != j) {
+          if (!hasThreat(ii, jj, opponentColor)) {
+            ret.appendMove(makeMove(from, ii, jj));
+          }
+        }
+      }
+    }
     return ret;
   }
 }
