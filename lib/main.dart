@@ -37,6 +37,7 @@ class _ChessboardState extends State<Chessboard> {
   var _board = Board();
   int? _iTap = null;
   int? _jTap = null;
+  List<Move>? _validMoves = null;
 
   @override
   Widget build(BuildContext context) {
@@ -49,15 +50,17 @@ class _ChessboardState extends State<Chessboard> {
     for (int i = 0; i < 8; i++) {
       var isSqLight = isLight;
       for (int j = 0; j < 8; j++) {
-        // Determine what piece to place here
-        var child;
-        if (_board[i][j] != Piece.empty) {
-          var pieceColor = _board[i][j].toString().substring(6);
-          child = SvgPicture.asset('assets/images/Chess_' + pieceColor + 't45.svg');
+        Coord c = Coord(i, j);
+        Piece p = _board.get(i, j);
+        SvgPicture? child;
+        if (p != Piece.empty) {
+          child = SvgPicture.asset(p.svgImage);
         }
-        var color;
+        Color color;
         if (i == _iTap && j == _jTap) {
           color = hilite;
+        } else if (_validMoves != null && _validMoves!.contains(c)) {
+          color = Colors.yellow;
         } else {
           color = isSqLight ? light : dark;
         }
@@ -71,13 +74,14 @@ class _ChessboardState extends State<Chessboard> {
                 if (_iTap == i && _jTap == j) {
                   _iTap = null;
                   _jTap = null;
+                  _validMoves = null;
                 } else {
                   _iTap = i;
                   _jTap = j;
+                  _validMoves = _board.validMoves(i, j);
                 }
               });
-            }
-            );
+            });
         isSqLight = !isSqLight;
         squares.add(square);
       }
