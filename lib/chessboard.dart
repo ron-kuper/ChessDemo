@@ -54,7 +54,8 @@ class _ChessboardState extends State<Chessboard> {
         // the square that was tapped if any
         Color color;
         if (i == _iTap && j == _jTap) {
-          color = highlight;
+          color = isSqLight ? light : dark;
+          color = color.withOpacity(0.5); // highlight;
         } else {
           color = isSqLight ? light : dark;
         }
@@ -63,6 +64,7 @@ class _ChessboardState extends State<Chessboard> {
         if (_validMoves != null && _validMoves!.containsToSquare(c)) {
           image = SvgPicture.asset(_pieceTap!.svgImage);
           padding = const EdgeInsets.all(10);
+          color = color.withOpacity(0.5);
         }
 
         var square = GestureDetector(
