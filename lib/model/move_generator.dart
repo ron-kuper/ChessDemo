@@ -198,6 +198,8 @@ extension MoveGenerator on Board {
     PieceColor myColor = get(i, j).color;
     PieceColor opponentColor = (myColor == PieceColor.light) ? PieceColor.dark : PieceColor.light;
     List<Move> ret = <Move>[];
+
+    // Start by checking regular moves
     for (int ii = max(i-1, 0); ii < min(i+2, 8); ii++) {
       for (int jj = max(j-1, 0); jj < min(j+2, 8); jj++) {
         if (ii != i || jj != j) {
@@ -207,6 +209,12 @@ extension MoveGenerator on Board {
         }
       }
     }
+
+    // Check for castles
+    if (!didKingMove(myColor) && !didKingCastle(myColor)) {
+
+    }
+
     return ret;
   }
 }

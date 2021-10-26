@@ -1,21 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'main.dart';
 import 'model/piece.dart';
 import 'model/board.dart';
 import 'model/move_generator.dart';
 
 class Chessboard extends StatefulWidget {
-  const Chessboard({Key? key}) : super(key: key);
+  Board _board;
+  Chessboard(this._board, {Key? key}) : super(key: key);
 
   @override
-  _ChessboardState createState() => _ChessboardState();
+  _ChessboardState createState() => _ChessboardState(_board);
 }
 
 class _ChessboardState extends State<Chessboard> {
-  final Board _board = Board();
   int? _iTap, _jTap;
   Piece? _pieceTap;
   List<Move>? _validMoves;
+  Board _board;
+
+  _ChessboardState(this._board);
 
   void setTap(int i, int j) {
     _iTap = i;
@@ -34,8 +38,7 @@ class _ChessboardState extends State<Chessboard> {
   Widget build(BuildContext context) {
     var squares = <GestureDetector>[];
     var light = const Color(0xFFEEEDD3);
-    var dark =  const Color(0xFF7C9B5F);
-    var highlight = Colors.red;
+    var dark = const Color(0xFF7C9B5F);
     bool isLight = true;
 
     for (int i = 0; i < 8; i++) {
@@ -74,7 +77,7 @@ class _ChessboardState extends State<Chessboard> {
                 child: image,
                 color: color),
             onTap: () {
-              setState(() {
+              MyApp.of(context).setState(() {
                 if (_iTap == i && _jTap == j) {
                   resetTap();
                 } else if (_validMoves != null && _validMoves!.isNotEmpty) {
@@ -97,11 +100,13 @@ class _ChessboardState extends State<Chessboard> {
       isLight = !isLight;
     }
 
-    return GridView.count(
-      primary: false,
-      padding: const EdgeInsets.all(20),
-      crossAxisCount: 8,
-      children: squares,
+    return Center(
+        child: GridView.count(
+          primary: false,
+          padding: const EdgeInsets.all(20),
+          crossAxisCount: 8,
+          children: squares
+        )
     );
   }
 }

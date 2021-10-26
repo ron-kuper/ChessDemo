@@ -13,10 +13,19 @@ class Coord {
 
 class Board {
   List<List<Piece>> _squares = List.generate(8, (i) => List.generate(8, (j) => Piece.empty, growable: false), growable: false);
+
+  // Keep track if we can castle or have already castled
   bool _lCastled = false;
   bool _dCastled = false;
+  bool _lkMoved = false;
+  bool _dkMoved = false;
 
   Board() {
+    reset();
+  }
+
+  void reset() {
+    _squares = List.generate(8, (i) => List.generate(8, (j) => Piece.empty, growable: false), growable: false);
     _squares[7] = <Piece>[Piece.rl, Piece.nl, Piece.bl, Piece.ql, Piece.kl, Piece.bl, Piece.nl, Piece.rl];
     _squares[6] = List.generate(8, (i) => Piece.pl, growable: false);
     _squares[1] = List.generate(8, (i) => Piece.pd, growable: false);
@@ -37,6 +46,13 @@ class Board {
     Piece p = _squares[fromI][fromJ];
     _squares[toI][toJ] = p;
     _squares[fromI][fromJ] = Piece.empty;
+    if (p.isKing) {
+      if (p.isLight) _lkMoved = true;
+      if (p.isDark) _dkMoved = true;
+    }
     return true;
   }
+
+  bool didKingMove(PieceColor color) => color == PieceColor.values ? _lkMoved : _dkMoved;
+  bool didKingCastle(PieceColor color) => color == PieceColor.values ? _lCastled : _dCastled;
 }
