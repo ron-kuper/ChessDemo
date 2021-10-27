@@ -19,23 +19,23 @@ abstract class Piece {
   String get svgImage => 'assets/images/Chess_' + _svgImageCode + (isLight ? 'l' : 'd') + 't45.svg';
 
   // Returns a move, capture or null depending on what's in the target square
-  Move? makeMove(Coord from, int deltaI, int deltaJ, { bool forCapture = false }) {
+  Move? makeMove(Coord from, int deltaI, int deltaJ, { MoveType moveType = MoveType.move }) {
     Move? ret;
     int toI = from.i + deltaI;
     int toJ = from.j + deltaJ;
     if (Coord.isValid(toI, toJ)) {
       Piece? pFrom = _board.get(from.i, from.j);
       assert( pFrom != null );
-      Piece? pTo = _board.get(toI, toJ);
+      Piece? pTo = _board.get(moveType == MoveType.enPassant ? from.i : toI, toJ);
       if (pTo == null) {
-        if (!forCapture) {
-          ret = Move.move(from, Coord(toI, toJ));
+        if (moveType == MoveType.move || moveType == MoveType.castle) {
+          ret = Move(from, Coord(toI, toJ), moveType: moveType);
         }
       } else {
         PieceColor toColor = pTo.color;
         PieceColor fromColor = _board.get(from.i, from.j)!.color;
         if (fromColor != toColor) {
-          ret = Move.capture(from, Coord(toI, toJ));
+          ret = Move(from, Coord(toI, toJ), moveType: moveType);
         }
       }
     }
@@ -59,9 +59,23 @@ class Pawn extends Piece {
       ret.appendMove(makeMove(from, direction + direction, 0));
     }
     // Capture left
-    ret.appendMove(makeMove(from, direction, -1, forCapture: true));
+    ret.appendMove(makeMove(from, direction, -1, moveType: MoveType.capture));
     // Capture right
-    ret.appendMove(makeMove(from, direction, 1, forCapture: true));
+    ret.appendMove(makeMove(from, direction, 1, moveType: MoveType.capture));
+    // En passant left
+    if (Coord.isValid(from.i, from.j-1)) {
+      Piece? p = _board.get(from.i, from.j-1);
+      if (p is Pawn && _board.isEnPassantPawn(p)) {
+        ret.appendMove(makeMove(from, direction, -1, moveType: MoveType.enPassant));
+      }
+    }
+    // En passant right
+    if (Coord.isValid(from.i, from.j+1)) {
+      Piece? p = _board.get(from.i, from.j+1);
+      if (p is Pawn && _board.isEnPassantPawn(p)) {
+        ret.appendMove(makeMove(from, direction, 1, moveType: MoveType.enPassant));
+      }
+    }
     return ret;
   }
 }
@@ -109,27 +123,14 @@ class Rook extends Piece {
   @override
   List<Move> validMoves(Coord from) {
     List<Move> ret = <Move>[];
-    // Scan right
-    for (int jj = from.j+1; jj < 8; jj++) {
-      if (!ret.appendMove(makeMove(from, 0, jj))) {
-        break;
-      }
-    }
-    // Scan left
-    for (int jj = from.j-1; jj >= 0; jj--) {
-      if (!ret.appendMove(makeMove(from, 0, jj))) {
-        break;
-      }
-    }
-    // Scan down
-    for (int ii = from.i+1; ii < 8; ii++) {
-      if (!ret.appendMove(makeMove(from, ii, 0))) {
-        break;
-      }
-    }
-    // Scan up
-    for (int ii = from.i-1; ii >= 0; ii--) {
-      if (!ret.appendMove(makeMove(from, ii, 0))) {
+    // Scan 4 axes
+    bool up = true, dn = true, lt = true, rt = true;
+    for (int scan = 1; scan < 8; scan++) {
+      if (up) up = ret.appendMove(makeMove(from, -scan,  0));
+      if (dn) dn = ret.appendMove(makeMove(from,  scan,  0));
+      if (lt) lt = ret.appendMove(makeMove(from,  0,    -scan));
+      if (rt) rt = ret.appendMove(makeMove(from,  0,     scan));
+      if (!up && !dn && !lt && !rt) {
         break;
       }
     }
@@ -169,9 +170,29 @@ class King extends Piece {
       }
     }
 
-    // Check for castles
+    // Check for castles - need empty squares to the rook, king and rook
+    // can't have moved, not threats for king to castled square
     if (!moved && !castled) {
-      castled = true;
+      // King side
+      if (_board.get(from.i, 7) is Rook && !_board.get(from.i, 7)!.moved) {
+        bool hasImpediment = false;
+        for (int jj = 1; jj < 3 && !hasImpediment; jj++) {
+          hasImpediment = _board.get(from.i, from.j+jj) != null || _board.hasThreat(from.i, from.j+jj, opponentColor);
+        }
+        if (!hasImpediment) {
+          ret.appendMove(makeMove(from, 0, 2, moveType: MoveType.castle));
+        }
+      }
+      // Queen side
+      if (_board.get(from.i, 0) is Rook && !_board.get(from.i, 0)!.moved) {
+        bool hasImpediment = false;
+        for (int jj = -2; jj < 0 && !hasImpediment; jj++) {
+          hasImpediment = _board.get(from.i, from.j+jj) != null || _board.hasThreat(from.i, from.j+jj, opponentColor);
+        }
+        if (!hasImpediment) {
+          ret.appendMove(makeMove(from, 0, -2, moveType: MoveType.castle));
+        }
+      }
     }
 
     return ret;

@@ -1,26 +1,21 @@
 import 'package:chess_demo/models/board.dart';
 
+enum MoveType { move, castle, capture, enPassant }
+
 class Move {
   Coord from;
   Coord to;
-  bool isCapture = false;
-  bool isCastle = false;
+  MoveType moveType = MoveType.move;
 
   bool equals(Move that) =>
-      that.from.equals(from) &&
-          that.to.equals(to) &&
-          that.isCapture == isCapture &&
-          that.isCastle == isCastle;
+      that.from.equals(from) && that.to.equals(to) && that.moveType == moveType;
 
-  Move.move(this.from, this.to);
+  Move(this.from, this.to, { this.moveType = MoveType.move });
 
-  Move.capture(this.from, this.to) {
-    isCapture = true;
-  }
-
-  Move.castle(this.from, this.to) {
-    isCastle = true;
-  }
+  bool get isMove => moveType == MoveType.move;
+  bool get isCapture => moveType == MoveType.capture;
+  bool get isCastle => moveType == MoveType.castle;
+  bool get isEnPassant => moveType == MoveType.enPassant;
 }
 
 extension MoveList on List<Move> {

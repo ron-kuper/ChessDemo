@@ -85,7 +85,7 @@ class _ChessboardState extends State<Chessboard> {
                   Coord c = Coord(i, j);
                   Move? m = _validMoves!.getMoveToSquare(c);
                   if (m != null) {
-                    board.move(m.from.i, m.from.j, m.to.i, m.to.j);
+                    board.performMove(m);
                     resetTap();
                   } else {
                     setTap(board, i, j);
