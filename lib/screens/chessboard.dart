@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:chess_demo/models/piece.dart';
 import 'package:chess_demo/models/board.dart';
-import 'package:chess_demo/models/move_generator.dart';
+import 'package:chess_demo/models/move.dart';
 
 class Chessboard extends StatefulWidget {
   const Chessboard({Key? key}) : super(key: key);
@@ -21,7 +21,11 @@ class _ChessboardState extends State<Chessboard> {
     _iTap = i;
     _jTap = j;
     _pieceTap = board.get(i, j);
-    _validMoves = board.validMoves(i, j);
+    if (_pieceTap != null) {
+      _validMoves = _pieceTap!.validMoves(Coord(i, j));
+    } else {
+      _validMoves = null;
+    }
   }
 
   void resetTap() {
@@ -42,11 +46,11 @@ class _ChessboardState extends State<Chessboard> {
       var isSqLight = isLight;
       for (int j = 0; j < 8; j++) {
         Coord c = Coord(i, j);
-        Piece p = board.get(i, j);
+        Piece? p = board.get(i, j);
 
         // Get the image for the piece if the square is occupied
         SvgPicture? image;
-        if (p != Piece.empty) {
+        if (p != null) {
           image = SvgPicture.asset(p.svgImage);
         }
 

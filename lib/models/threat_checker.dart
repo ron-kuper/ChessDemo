@@ -28,17 +28,19 @@ extension ThreatChecker on BoardModel {
     if (!Coord.isValid(i, j)) {
       return true;
     } else {
-      Piece p = get(i, j);
-      if (p.color == opponentColor && predicate(p)) {
+      Piece? p = get(i, j);
+      if (p == null) {
+        return true;
+      } else if (p.color == opponentColor && predicate(p)) {
         throw 'foe';
       } else {
-        return p.isEmpty;
+        return false;
       }
     }
   }
 
   bool rankFileFriendOrFoe(int i, int j, PieceColor opponentColor) {
-    return friendOrFoe(i, j, opponentColor, (p) => p.isQueen || p.isRook);
+    return friendOrFoe(i, j, opponentColor, (p) => p is Queen || p is Rook);
   }
 
   bool hasRankFileThreat(int i, int j, PieceColor opponentColor) {
@@ -57,7 +59,7 @@ extension ThreatChecker on BoardModel {
   }
 
   bool diagonalFriendOrFoe(int i, int j, PieceColor opponentColor) {
-    return friendOrFoe(i, j, opponentColor, (p) => p.isQueen || p.isBishop);
+    return friendOrFoe(i, j, opponentColor, (p) => p is Queen || p is Bishop);
   }
 
   bool hasDiagonalThreat(int i, int j, PieceColor opponentColor) {
@@ -76,7 +78,7 @@ extension ThreatChecker on BoardModel {
   }
 
   bool knightFriendOrFoe(int i, int j, PieceColor opponentColor) {
-    return friendOrFoe(i, j, opponentColor, (p) => p.isKnight);
+    return friendOrFoe(i, j, opponentColor, (p) => p is Knight);
   }
 
   bool hasKnightThreat(int i, int j, PieceColor opponentColor) {
@@ -98,7 +100,7 @@ extension ThreatChecker on BoardModel {
   }
 
   bool kingFriendOrFoe(int i, int j, PieceColor opponentColor) {
-    return friendOrFoe(i, j, opponentColor, (p) => p.isKing);
+    return friendOrFoe(i, j, opponentColor, (p) => p is King);
   }
 
   bool hasKingThreat(int i, int j, PieceColor opponentColor) {
@@ -119,7 +121,7 @@ extension ThreatChecker on BoardModel {
   }
 
   bool pawnFriendOrFoe(int i, int j, PieceColor opponentColor) {
-    return friendOrFoe(i, j, opponentColor, (p) => p.isPawn);
+    return friendOrFoe(i, j, opponentColor, (p) => p is Pawn);
   }
 
   bool hasPawnThreat(int i, int j, PieceColor opponentColor) {

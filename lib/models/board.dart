@@ -11,24 +11,24 @@ class Coord {
 }
 
 class BoardModel extends ChangeNotifier {
-  List<List<Piece>> _squares = List.generate(8, (i) => List.generate(8, (j) => Piece.empty, growable: false), growable: false);
+  List<List<Piece?>> _squares = List.generate(8, (i) => List.generate(8, (j) => null, growable: false), growable: false);
 
   // Keep track if we can castle or have already castled
   bool _lCastled = false;
   bool _dCastled = false;
-  bool _lkMoved = false;
-  bool _dkMoved = false;
 
   BoardModel() {
     reset();
   }
 
   void reset() {
-    _squares = List.generate(8, (i) => List.generate(8, (j) => Piece.empty, growable: false), growable: false);
-    _squares[7] = <Piece>[Piece.rl, Piece.nl, Piece.bl, Piece.ql, Piece.kl, Piece.bl, Piece.nl, Piece.rl];
-    _squares[6] = List.generate(8, (i) => Piece.pl, growable: false);
-    _squares[1] = List.generate(8, (i) => Piece.pd, growable: false);
-    _squares[0] = <Piece>[Piece.rd, Piece.nd, Piece.bd, Piece.qd, Piece.kd, Piece.bd, Piece.nd, Piece.rd];
+    _squares = List.generate(8, (i) => List.generate(8, (j) => null, growable: false), growable: false);
+    const PieceColor l = PieceColor.light;
+    const PieceColor d = PieceColor.dark;
+    _squares[7] = [Rook(this, l), Knight(this, l), Bishop(this, l), Queen(this, l), King(this, l), Bishop(this, l), Knight(this, l), Rook(this, l)];
+    _squares[6] = List.generate(8, (i) => Pawn(this, l), growable: false);
+    _squares[1] = List.generate(8, (i) => Pawn(this, d), growable: false);
+    _squares[0] = [Rook(this, d), Knight(this, d), Bishop(this, d), Queen(this, d), King(this, d), Bishop(this, d), Knight(this, d), Rook(this, d)];
     notifyListeners();
   }
 
@@ -36,25 +36,22 @@ class BoardModel extends ChangeNotifier {
     _squares = other._squares.map((element) => List.from(element)).toList(growable: false).cast();
   }
 
-  Piece get(int i, int j) {
+  Piece? get(int i, int j) {
     return _squares[i][j];
   }
 
   bool move(int fromI, int fromJ, int toI, int toJ) {
     assert(Coord.isValid(fromI, fromJ));
     assert(Coord.isValid(toI, toJ));
-    Piece p = _squares[fromI][fromJ];
+    Piece? p = _squares[fromI][fromJ];
+    assert(p != null);
     _squares[toI][toJ] = p;
-    _squares[fromI][fromJ] = Piece.empty;
-    if (p.isKing) {
-      if (p.isLight) _lkMoved = true;
-      if (p.isDark) _dkMoved = true;
-    }
+    _squares[fromI][fromJ] = null;
+    p!.moved = true;
     notifyListeners();
     return true;
   }
 
-  bool didKingMove(PieceColor color) => color == PieceColor.light ? _lkMoved : _dkMoved;
   bool didKingCastle(PieceColor color) => color == PieceColor.light ? _lCastled : _dCastled;
 
   void setCastled(PieceColor color) {
