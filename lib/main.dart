@@ -3,43 +3,46 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'chessboard.dart';
 import 'model/board.dart';
 
-void main() => runApp(const MyApp());
+void main() => runApp(const ChessAppProvider());
 
-class MyApp extends StatefulWidget {
-  const MyApp({Key? key}) : super(key: key);
-
-  static of(BuildContext context, {bool root = false}) => root
-      ? context.findRootAncestorStateOfType<MyAppState>()
-      : context.findAncestorStateOfType<MyAppState>();
+class ChessAppProvider extends StatelessWidget {
+  const ChessAppProvider({Key? key}) : super(key: key);
 
   @override
-  MyAppState createState() => MyAppState();
+  Widget build(BuildContext context) {
+    return MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (context) => BoardModel())
+        ],
+        child: const ChessApp()
+    );
+  }
 }
 
-class MyAppState extends State<MyApp> {
-  static Board board = Board();
+class ChessApp extends StatelessWidget {
+  const ChessApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        title: 'ChessBoard',
-        home: Scaffold(
-            appBar: AppBar(
-              title: const Text('Chess'),
-            ),
-            body: Chessboard(board),
-            persistentFooterButtons: <Widget>[
-              IconButton(
-                icon: const Icon(Icons.replay_circle_filled),
-                onPressed: () {
-                  setState(() { board.reset(); });
-                },
-              )
-            ]
-        )
+      title: 'ChessBoard',
+      home: Scaffold(
+          appBar: AppBar(
+            title: const Text('Chess'),
+          ),
+          body: const Chessboard(),
+          persistentFooterButtons: <Widget>[
+            IconButton(
+              icon: const Icon(Icons.replay_circle_filled),
+              onPressed: () {
+                context.read<BoardModel>().reset();
+              })
+          ]
+      )
     );
   }
 }

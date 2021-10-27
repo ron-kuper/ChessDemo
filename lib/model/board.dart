@@ -1,8 +1,7 @@
 // Representation of boards and moves
 
-import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'piece.dart';
-import 'move_generator.dart';
 
 class Coord {
   int i, j;
@@ -11,7 +10,7 @@ class Coord {
   bool equals(Coord that) => that.i == i && that.j == j;
 }
 
-class Board {
+class BoardModel extends ChangeNotifier {
   List<List<Piece>> _squares = List.generate(8, (i) => List.generate(8, (j) => Piece.empty, growable: false), growable: false);
 
   // Keep track if we can castle or have already castled
@@ -20,7 +19,7 @@ class Board {
   bool _lkMoved = false;
   bool _dkMoved = false;
 
-  Board() {
+  BoardModel() {
     reset();
   }
 
@@ -30,9 +29,10 @@ class Board {
     _squares[6] = List.generate(8, (i) => Piece.pl, growable: false);
     _squares[1] = List.generate(8, (i) => Piece.pd, growable: false);
     _squares[0] = <Piece>[Piece.rd, Piece.nd, Piece.bd, Piece.qd, Piece.kd, Piece.bd, Piece.nd, Piece.rd];
+    notifyListeners();
   }
 
-  Board.from(Board other) {
+  BoardModel.from(BoardModel other) {
     _squares = other._squares.map((element) => List.from(element)).toList(growable: false).cast();
   }
 
@@ -50,9 +50,18 @@ class Board {
       if (p.isLight) _lkMoved = true;
       if (p.isDark) _dkMoved = true;
     }
+    notifyListeners();
     return true;
   }
 
-  bool didKingMove(PieceColor color) => color == PieceColor.values ? _lkMoved : _dkMoved;
-  bool didKingCastle(PieceColor color) => color == PieceColor.values ? _lCastled : _dCastled;
+  bool didKingMove(PieceColor color) => color == PieceColor.light ? _lkMoved : _dkMoved;
+  bool didKingCastle(PieceColor color) => color == PieceColor.light ? _lCastled : _dCastled;
+
+  void setCastled(PieceColor color) {
+    if (color == PieceColor.light) {
+      _lCastled = true;
+    } else {
+      _dCastled = true;
+    }
+  }
 }

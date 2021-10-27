@@ -52,7 +52,7 @@ extension MoveList on List<Move> {
   }
 }
 
-extension MoveGenerator on Board {
+extension MoveGenerator on BoardModel {
   // Returns a move, capture or null depending on what's in the target square
   Move? makeMove(Coord from,
                  int toI, int toJ,
@@ -212,7 +212,7 @@ extension MoveGenerator on Board {
 
     // Check for castles
     if (!didKingMove(myColor) && !didKingCastle(myColor)) {
-
+      setCastled(myColor);
     }
 
     return ret;

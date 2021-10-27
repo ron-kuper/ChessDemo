@@ -1,7 +1,7 @@
 import 'piece.dart';
 import 'board.dart';
 
-extension ThreatChecker on Board {
+extension ThreatChecker on BoardModel {
   bool hasThreat(int i, int j, PieceColor opponentColor) {
     if (hasRankFileThreat(i, j, opponentColor)) {
       return true;
