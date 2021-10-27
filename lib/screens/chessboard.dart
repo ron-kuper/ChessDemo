@@ -65,18 +65,19 @@ class _ChessboardState extends State<Chessboard> {
         }
 
         EdgeInsetsGeometry? padding;
+        Border? border;
         if (_validMoves != null && _validMoves!.containsToSquare(c)) {
-          image = SvgPicture.asset(_pieceTap!.svgImage);
-          padding = const EdgeInsets.all(10);
-          color = color.withOpacity(0.5);
+          border = Border.all(color: Color.fromRGBO(0, 0, 0, 0.2), width: 16);
         }
-
         var square = GestureDetector(
             child: Container(
                 margin: const EdgeInsets.all(0),
                 padding: padding,
-                child: image,
-                color: color),
+                decoration: BoxDecoration(
+                  color: color,
+                  border: border
+                ),
+                child: image),
             onTap: () {
               setState(() {
                 if (_iTap == i && _jTap == j) {
