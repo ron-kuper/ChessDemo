@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'model/piece.dart';
-import 'model/board.dart';
-import 'model/move_generator.dart';
+import 'package:chess_demo/models/piece.dart';
+import 'package:chess_demo/models/board.dart';
+import 'package:chess_demo/models/move_generator.dart';
 
 class Chessboard extends StatefulWidget {
   const Chessboard({Key? key}) : super(key: key);

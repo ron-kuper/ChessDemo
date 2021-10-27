@@ -1,5 +1,5 @@
-import 'piece.dart';
-import 'board.dart';
+import 'package:chess_demo/models/piece.dart';
+import 'package:chess_demo/models/board.dart';
 
 extension ThreatChecker on BoardModel {
   bool hasThreat(int i, int j, PieceColor opponentColor) {

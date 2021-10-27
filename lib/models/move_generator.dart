@@ -1,7 +1,7 @@
 import 'dart:math';
-import 'piece.dart';
-import 'board.dart';
-import 'threat_checker.dart';
+import 'package:chess_demo/models/piece.dart';
+import 'package:chess_demo/models/board.dart';
+import 'package:chess_demo/models/threat_checker.dart';
 
 class Move {
   Coord from;

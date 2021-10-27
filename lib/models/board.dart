@@ -1,7 +1,7 @@
 // Representation of boards and moves
 
 import 'package:flutter/foundation.dart';
-import 'piece.dart';
+import 'package:chess_demo/models/piece.dart';
 
 class Coord {
   int i, j;
