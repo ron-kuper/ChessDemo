@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:chess_demo/models/piece.dart';
 import 'package:chess_demo/models/board.dart';
 import 'package:chess_demo/models/move.dart';
+import 'package:chess_demo/models/valid_moves.dart';
 
 class Chessboard extends StatefulWidget {
   const Chessboard({Key? key}) : super(key: key);
@@ -14,25 +15,6 @@ class Chessboard extends StatefulWidget {
 
 class _ChessboardState extends State<Chessboard> {
   int? _iTap, _jTap;
-  Piece? _pieceTap;
-  List<Move>? _validMoves;
-
-  void setTap(BoardModel board, int i, int j) {
-    _iTap = i;
-    _jTap = j;
-    _pieceTap = board.get(i, j);
-    if (_pieceTap != null) {
-      _validMoves = _pieceTap!.validMoves(Coord(i, j));
-    } else {
-      _validMoves = null;
-    }
-  }
-
-  void resetTap() {
-    _iTap = _jTap = null;
-    _pieceTap = null;
-    _validMoves = null;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,6 +24,8 @@ class _ChessboardState extends State<Chessboard> {
     bool isLight = true;
 
     BoardModel board = context.watch<BoardModel>();
+    ValidMovesModel validMoves = context.watch<ValidMovesModel>();
+    List<Move>? validMoveList = validMoves.moveList;
     for (int i = 0; i < 8; i++) {
       var isSqLight = isLight;
       for (int j = 0; j < 8; j++) {
@@ -66,8 +50,8 @@ class _ChessboardState extends State<Chessboard> {
 
         EdgeInsetsGeometry? padding;
         Border? border;
-        if (_validMoves != null && _validMoves!.containsToSquare(c)) {
-          border = Border.all(color: Color.fromRGBO(0, 0, 0, 0.2), width: 16);
+        if (validMoveList != null && validMoveList.containsToSquare(c)) {
+          border = Border.all(color: const Color.fromRGBO(0, 0, 0, 0.2), width: 16);
         }
         var square = GestureDetector(
             child: Container(
@@ -81,18 +65,18 @@ class _ChessboardState extends State<Chessboard> {
             onTap: () {
               setState(() {
                 if (_iTap == i && _jTap == j) {
-                  resetTap();
-                } else if (_validMoves != null && _validMoves!.isNotEmpty) {
+                  validMoves.reset();
+                } else if (validMoveList != null && validMoveList.isNotEmpty) {
                   Coord c = Coord(i, j);
-                  Move? m = _validMoves!.getMoveToSquare(c);
+                  Move? m = validMoveList.getMoveToSquare(c);
                   if (m != null) {
                     board.performMove(m);
-                    resetTap();
+                    validMoves.reset();
                   } else {
-                    setTap(board, i, j);
+                    validMoves.calculateValidMoves(i, j);
                   }
                 } else {
-                  setTap(board, i, j);
+                  validMoves.calculateValidMoves(i, j);
                 }
               });
             });

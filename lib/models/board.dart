@@ -12,9 +12,7 @@ class Coord {
 }
 
 class BoardModel extends ChangeNotifier {
-  List<List<Piece?>> _squares = List.generate(
-      8, (i) => List.generate(8, (j) => null, growable: false),
-      growable: false);
+  List<List<Piece?>> _squares = List.generate(8, (i) => List.generate(8, (j) => null, growable: false), growable: false);
 
   // Keep track of which pawn are vulnerable to en passant next turn
   Pawn? _lightPawnEnPassant;
@@ -29,13 +27,10 @@ class BoardModel extends ChangeNotifier {
   }
 
   void reset() {
-    _squares = List.generate(
-        8, (i) => List.generate(8, (j) => null, growable: false),
-        growable: false);
+    _squares = List.generate(8, (i) => List.generate(8, (j) => null, growable: false), growable: false);
     const PieceColor l = PieceColor.light;
     const PieceColor d = PieceColor.dark;
-    _squares[7] = [
-      Rook(this, l),
+    _squares[7] = [Rook(this, l),
       Knight(this, l),
       Bishop(this, l),
       Queen(this, l),
@@ -60,8 +55,7 @@ class BoardModel extends ChangeNotifier {
   }
 
   BoardModel.from(BoardModel other) {
-    _squares = other._squares.map((element) => List.from(element)).toList(
-        growable: false).cast();
+    _squares = other._squares.map((element) => List.from(element)).toList(growable: false).cast();
   }
 
   Piece? get(int i, int j) {

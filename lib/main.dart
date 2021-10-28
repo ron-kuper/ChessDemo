@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:chess_demo/screens/chessboard.dart';
 import 'package:chess_demo/models/board.dart';
+import 'package:chess_demo/models/valid_moves.dart';
 
 void main() => runApp(const ChessAppProvider());
 
@@ -10,9 +11,12 @@ class ChessAppProvider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    BoardModel boardModel = BoardModel();
+    ValidMovesModel validMovesModel = ValidMovesModel(boardModel);
     return MultiProvider(
         providers: [
-          ChangeNotifierProvider(create: (context) => BoardModel())
+          ChangeNotifierProvider(create: (context) => boardModel),
+          ChangeNotifierProvider(create: (context) => validMovesModel)
         ],
         child: const ChessApp()
     );
@@ -37,6 +41,7 @@ class ChessApp extends StatelessWidget {
               label:  const Text('Reset'),
               onPressed: () {
                 context.read<BoardModel>().reset();
+                context.read<ValidMovesModel>().reset();
               })
           ]
       )
