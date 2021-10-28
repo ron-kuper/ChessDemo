@@ -18,6 +18,11 @@ class _ChessboardState extends State<Chessboard> {
 
   @override
   Widget build(BuildContext context) {
+    MediaQueryData mq = MediaQuery.of(context);
+    double width = mq.size.width;
+    double height = mq.size.height;
+    double size = width > height ? height : width;
+
     var squares = <GestureDetector>[];
     var light = const Color(0xFFEEEDD3);
     var dark = const Color(0xFF7C9B5F);
@@ -86,12 +91,60 @@ class _ChessboardState extends State<Chessboard> {
       isLight = !isLight;
     }
 
-    return Center(
+    const double boardInset = 6;
+
+    Center boardGrid = Center(
         child: GridView.count(
-          primary: false,
-          padding: const EdgeInsets.all(20),
-          crossAxisCount: 8,
-          children: squares
+            primary: false,
+            padding: const EdgeInsets.all(boardInset),
+            crossAxisCount: 8,
+            children: squares
+        )
+    );
+
+    const double vertLabelWidth = 16;
+    double vertLabelHeight = (size - boardInset * 4 - 3) / 8;
+    List<Widget> vertLabels = <Widget>[];
+    vertLabels.add(Container(
+        constraints: BoxConstraints.tightFor(width: vertLabelWidth, height: boardInset)));
+    for (int i = 8; i >= 1; i--) {
+      vertLabels.add(Container(
+          constraints: BoxConstraints.tightFor(width: vertLabelWidth, height: vertLabelHeight),
+          alignment: Alignment.center,
+          child: Center(child: Text(i.toString())
+          )));
+    }
+
+    ListView vertLabelsList = ListView(
+        children: vertLabels
+    );
+
+    List<Widget> horzLabels = <Widget>[];
+    // horzLabels.add(Container(
+    //    constraints: const BoxConstraints.tightFor(width: vertLabelWidth, height: vertLabelWidth)));
+    List<String> hzText = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+    for (int i = 0; i < 8; i++) {
+      horzLabels.add(Container(
+          constraints: BoxConstraints.tightFor(width: vertLabelHeight+1, height: vertLabelWidth),
+          alignment: Alignment.center,
+          child: Center(child: Text(hzText[i])
+          )));
+    }
+
+    return Container(
+        child: Container(
+            constraints: BoxConstraints.tightFor(width: size, height: size),
+            child: Row(
+                children: <Widget>[
+                  SizedBox(width: vertLabelWidth, child: vertLabelsList),
+                  Expanded(child: Column(
+                      children: <Widget>[
+                        Expanded(child: boardGrid),
+                        Row(children: horzLabels)
+                      ]
+                  ))
+                ]
+            )
         )
     );
   }
