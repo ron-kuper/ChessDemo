@@ -29,24 +29,29 @@ abstract class Piece {
       Piece? pTo = _board.get(moveType == MoveType.enPassant ? from.i : toI, toJ);
       if (pTo == null) {
         if (moveType == MoveType.move || moveType == MoveType.castle) {
-          ret = Move(from, Coord(toI, toJ), moveType: moveType);
+          ret = Move(pFrom!, from, Coord(toI, toJ), moveType: moveType);
         }
       } else {
         PieceColor toColor = pTo.color;
         PieceColor fromColor = _board.get(from.i, from.j)!.color;
         if (fromColor != toColor) {
-          ret = Move(from, Coord(toI, toJ), moveType: moveType);
+          ret = Move(pFrom!, from, Coord(toI, toJ), moveType: MoveType.capture);
         }
       }
     }
+
     return ret;
   }
 
   List<Move> validMoves(Coord from);
+  String name();
 }
 
 class Pawn extends Piece {
   Pawn(BoardModel board, PieceColor color) : super(board, color, 'p');
+
+  @override
+  String name() => '';
 
   @override
   List<Move> validMoves(Coord from) {
@@ -84,6 +89,9 @@ class Knight extends Piece {
   Knight(BoardModel board, PieceColor color) : super(board, color, 'n');
 
   @override
+  String name() => 'N';
+
+  @override
   List<Move> validMoves(Coord from) {
     List<Move> ret = <Move>[];
     for (int dx = -2; dx <= 2; dx += 4) {
@@ -98,6 +106,9 @@ class Knight extends Piece {
 
 class Bishop extends Piece {
   Bishop(BoardModel board, PieceColor color) : super(board, color, 'b');
+
+  @override
+  String name() => 'B';
 
   @override
   List<Move> validMoves(Coord from) {
@@ -121,6 +132,9 @@ class Rook extends Piece {
   Rook(BoardModel board, PieceColor color) : super(board, color, 'r');
 
   @override
+  String name() => 'R';
+
+  @override
   List<Move> validMoves(Coord from) {
     List<Move> ret = <Move>[];
     // Scan 4 axes
@@ -142,6 +156,9 @@ class Queen extends Piece {
   Queen(BoardModel board, PieceColor color) : super(board, color, 'q');
 
   @override
+  String name() => 'Q';
+
+  @override
   List<Move> validMoves(Coord from) {
     List<Move> ret = Rook(_board, color).validMoves(from);
     ret.addAll(Bishop(_board, color).validMoves(from));
@@ -153,6 +170,9 @@ class King extends Piece {
   bool castled = false;
 
   King(BoardModel board, PieceColor color) : super(board, color, 'k');
+
+  @override
+  String name() => 'K';
 
   @override
   List<Move> validMoves(Coord from) {

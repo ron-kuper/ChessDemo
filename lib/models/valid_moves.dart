@@ -13,7 +13,7 @@ class ValidMovesModel extends ChangeNotifier {
 
   List<Move>? calculateValidMoves(int i, int j) {
     Piece? pieceTap = _board.get(i, j);
-    if (pieceTap != null) {
+    if (pieceTap != null && pieceTap.color == _board.whoseMove) {
       _moveList = pieceTap.validMoves(Coord(i, j));
     } else {
       _moveList = null;

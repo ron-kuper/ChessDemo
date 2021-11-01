@@ -63,8 +63,8 @@ class _ChessboardState extends State<Chessboard> {
                 margin: const EdgeInsets.all(0),
                 padding: padding,
                 decoration: BoxDecoration(
-                  color: color,
-                  border: border
+                    color: color,
+                    border: border
                 ),
                 child: image),
             onTap: () {
@@ -122,29 +122,27 @@ class _ChessboardState extends State<Chessboard> {
     List<Widget> horzLabels = <Widget>[];
     // horzLabels.add(Container(
     //    constraints: const BoxConstraints.tightFor(width: vertLabelWidth, height: vertLabelWidth)));
-    List<String> hzText = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+    String hzText = 'abcdefgh';
     for (int i = 0; i < 8; i++) {
       horzLabels.add(Container(
-          constraints: BoxConstraints.tightFor(width: vertLabelHeight+1, height: vertLabelWidth),
+          constraints: BoxConstraints.tightFor(width: vertLabelHeight + 1, height: vertLabelWidth),
           alignment: Alignment.center,
           child: Center(child: Text(hzText[i])
           )));
     }
 
     return Container(
-        child: Container(
-            constraints: BoxConstraints.tightFor(width: size, height: size),
-            child: Row(
-                children: <Widget>[
-                  SizedBox(width: vertLabelWidth, child: vertLabelsList),
-                  Expanded(child: Column(
-                      children: <Widget>[
-                        Expanded(child: boardGrid),
-                        Row(children: horzLabels)
-                      ]
-                  ))
-                ]
-            )
+        constraints: BoxConstraints.tightFor(width: size, height: size),
+        child: Row(
+            children: <Widget>[
+              SizedBox(width: vertLabelWidth, child: vertLabelsList),
+              Expanded(child: Column(
+                  children: <Widget>[
+                    Expanded(child: boardGrid),
+                    Row(children: horzLabels)
+                  ]
+              ))
+            ]
         )
     );
   }
