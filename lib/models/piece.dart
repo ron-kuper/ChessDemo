@@ -1,6 +1,7 @@
 import 'package:chess_demo/models/board.dart';
 import 'package:chess_demo/models/threat_checker.dart';
 import 'package:chess_demo/models/move.dart';
+import 'package:flutter/material.dart';
 
 enum PieceColor { light, dark }
 
@@ -8,9 +9,12 @@ abstract class Piece {
   final BoardModel _board;
   final PieceColor _color;
   final String _svgImageCode;
+  final GlobalKey _key = GlobalKey();
   bool moved = false;
 
   Piece(this._board, this._color, this._svgImageCode);
+
+  Key get key => _key;
 
   PieceColor get color => _color;
   bool get isLight => _color == PieceColor.light;

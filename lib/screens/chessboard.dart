@@ -18,12 +18,19 @@ class _ChessboardState extends State<Chessboard> {
 
   @override
   Widget build(BuildContext context) {
+    const double boardInset = 0;
     MediaQueryData mq = MediaQuery.of(context);
-    double width = mq.size.width;
-    double height = mq.size.height;
+    double width = mq.size.width - boardInset*2;
+    double height = mq.size.height - boardInset*2;
     double size = width > height ? height : width;
 
+    // Find a agreeable row label width that can be an integer with integer square sizes
+    double squareSize = ((size-12) / 8).floor().toDouble();
+    double rowLabelWidth = size - squareSize * 8;
+    double colLabelHeight = rowLabelWidth;
+
     var squares = <GestureDetector>[];
+    var pieces = <AnimatedPositioned>[];
     var light = const Color(0xFFEEEDD3);
     var dark = const Color(0xFF7C9B5F);
     bool isLight = true;
@@ -38,9 +45,18 @@ class _ChessboardState extends State<Chessboard> {
         Piece? p = board.get(i, j);
 
         // Get the image for the piece if the square is occupied
-        SvgPicture? image;
         if (p != null) {
-          image = SvgPicture.asset(p.svgImage);
+          SvgPicture image = SvgPicture.asset(p.svgImage);
+          var piece = AnimatedPositioned(
+            key: p.key,
+            width: squareSize,
+            height: squareSize,
+            top: i * squareSize,
+            left: j * squareSize,
+            child: IgnorePointer(ignoring: true, child: image),
+            duration: const Duration(milliseconds: 250)
+          );
+          pieces.add(piece);
         }
 
         // Determine the background color for the square, highlighting
@@ -53,20 +69,18 @@ class _ChessboardState extends State<Chessboard> {
           color = isSqLight ? light : dark;
         }
 
-        EdgeInsetsGeometry? padding;
         Border? border;
         if (validMoveList != null && validMoveList.containsToSquare(c)) {
           border = Border.all(color: const Color.fromRGBO(0, 0, 0, 0.2), width: 16);
         }
         var square = GestureDetector(
             child: Container(
-                margin: const EdgeInsets.all(0),
-                padding: padding,
+                width: squareSize,
+                height: squareSize,
                 decoration: BoxDecoration(
                     color: color,
                     border: border
-                ),
-                child: image),
+                )),
             onTap: () {
               setState(() {
                 if (_iTap == i && _jTap == j) {
@@ -91,43 +105,37 @@ class _ChessboardState extends State<Chessboard> {
       isLight = !isLight;
     }
 
-    const double boardInset = 6;
+    List<Widget> gridStack = <Widget>[
+      GridView.count(
+        primary: false,
+        padding: const EdgeInsets.all(boardInset),
+        crossAxisCount: 8,
+        children: squares)
+    ];
 
-    Center boardGrid = Center(
-        child: GridView.count(
-            primary: false,
-            padding: const EdgeInsets.all(boardInset),
-            crossAxisCount: 8,
-            children: squares
-        )
-    );
+    gridStack.addAll(pieces);
 
-    const double vertLabelWidth = 16;
-    double vertLabelHeight = (size - boardInset * 4 - 3) / 8;
-    List<Widget> vertLabels = <Widget>[];
-    vertLabels.add(Container(
-        constraints: BoxConstraints.tightFor(width: vertLabelWidth, height: boardInset)));
+    Center boardGrid = Center(child: Stack(children: gridStack));
+
+    List<Widget> rowLabels = <Widget>[];
+    if (boardInset > 0) {
+      rowLabels.add(Container(
+          constraints: BoxConstraints.tightFor(width: rowLabelWidth, height: boardInset)));
+    }
     for (int i = 8; i >= 1; i--) {
-      vertLabels.add(Container(
-          constraints: BoxConstraints.tightFor(width: vertLabelWidth, height: vertLabelHeight),
+      rowLabels.add(Container(
+          constraints: BoxConstraints.tightFor(width: rowLabelWidth, height: squareSize),
           alignment: Alignment.center,
           child: Center(child: Text(i.toString())
           )));
     }
 
-    ListView vertLabelsList = ListView(
-        children: vertLabels
-    );
-
-    List<Widget> horzLabels = <Widget>[];
-    // horzLabels.add(Container(
-    //    constraints: const BoxConstraints.tightFor(width: vertLabelWidth, height: vertLabelWidth)));
-    String hzText = 'abcdefgh';
+    List<Widget> colLabels = <Widget>[];
     for (int i = 0; i < 8; i++) {
-      horzLabels.add(Container(
-          constraints: BoxConstraints.tightFor(width: vertLabelHeight + 1, height: vertLabelWidth),
+      colLabels.add(Container(
+          constraints: BoxConstraints.tightFor(width: squareSize, height: colLabelHeight),
           alignment: Alignment.center,
-          child: Center(child: Text(hzText[i])
+          child: Center(child: Text('abcdefgh'[i])
           )));
     }
 
@@ -135,12 +143,9 @@ class _ChessboardState extends State<Chessboard> {
         constraints: BoxConstraints.tightFor(width: size, height: size),
         child: Row(
             children: <Widget>[
-              SizedBox(width: vertLabelWidth, child: vertLabelsList),
+              SizedBox(width: rowLabelWidth, child: ListView(children: rowLabels)),
               Expanded(child: Column(
-                  children: <Widget>[
-                    Expanded(child: boardGrid),
-                    Row(children: horzLabels)
-                  ]
+                  children: <Widget>[Expanded(child: boardGrid), Row(children: colLabels)]
               ))
             ]
         )
