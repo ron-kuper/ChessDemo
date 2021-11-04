@@ -3,7 +3,7 @@ import 'package:chess_demo/models/threat_checker.dart';
 import 'package:chess_demo/models/move.dart';
 import 'package:flutter/material.dart';
 
-enum PieceColor { light, dark }
+enum PieceColor { white, black }
 
 abstract class Piece {
   final BoardModel _board;
@@ -17,10 +17,10 @@ abstract class Piece {
   Key get key => _key;
 
   PieceColor get color => _color;
-  bool get isLight => _color == PieceColor.light;
-  bool get isDark => _color == PieceColor.dark;
+  bool get isWhite => _color == PieceColor.white;
+  bool get isBlack => _color == PieceColor.black;
 
-  String get svgImage => 'assets/images/Chess_' + _svgImageCode + (isLight ? 'l' : 'd') + 't45.svg';
+  String get svgImage => 'assets/images/Chess_' + _svgImageCode + (isWhite ? 'l' : 'd') + 't45.svg';
 
   // Returns a move, capture or null depending on what's in the target square
   Move? makeMove(Coord from, int deltaI, int deltaJ, { MoveType moveType = MoveType.move }) {
@@ -60,11 +60,11 @@ class Pawn extends Piece {
   @override
   List<Move> validMoves(Coord from) {
     List<Move> ret = <Move>[];
-    int direction = isLight ? -1 : 1;
+    int direction = isWhite ? -1 : 1;
     // 1 square forward move
     ret.appendMove(makeMove(from, direction, 0));
     // 2 square forward move
-    if ((isLight && from.i == 6) || (!isLight && from.i == 1)) {
+    if ((isWhite && from.i == 6) || (!isWhite && from.i == 1)) {
       ret.appendMove(makeMove(from, direction + direction, 0));
     }
     // Capture left
@@ -181,7 +181,7 @@ class King extends Piece {
   @override
   List<Move> validMoves(Coord from) {
     List<Move> ret = <Move>[];
-    PieceColor opponentColor = (color == PieceColor.light) ? PieceColor.dark : PieceColor.light;
+    PieceColor opponentColor = (color == PieceColor.white) ? PieceColor.black : PieceColor.white;
 
     // Start by checking regular moves
     for (int ii = -1; ii < 2; ii++) {

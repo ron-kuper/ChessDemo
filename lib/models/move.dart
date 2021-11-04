@@ -26,12 +26,16 @@ class Move {
 
   @override
   String toString() {
+    return toAlgebraic();
+  }
+
+  String toAlgebraic() {
     String ret = '';
     String p = piece.name();
     if (piece is Pawn && (isCapture || isEnPassant)) {
       p = 'abcdefgh'[from.j];
     }
-    String col = 'abcdefgh'[to.j];
+    String col = 'abcdefgh'[to.i];
     String row = (8 - to.j).toString();
     if (isCapture) {
       ret = p + 'x' + col + row;
@@ -51,6 +55,8 @@ class Move {
     }
     return ret;
   }
+
+  String toUCI () => 'abcdefgh'[from.j] + (8-from.i).toString() + 'abcdefgh'[to.j] + (8-to.i).toString();
 }
 
 extension MoveList on List<Move> {

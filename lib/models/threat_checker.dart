@@ -126,7 +126,7 @@ extension ThreatChecker on BoardModel {
 
   bool hasPawnThreat(int i, int j, PieceColor opponentColor) {
     // Determine which way enemy pawns are moving
-    int direction = opponentColor == PieceColor.light ? 1 : -1;
+    int direction = opponentColor == PieceColor.white ? 1 : -1;
     try {
       pawnFriendOrFoe(i+direction, j-1, opponentColor);
       pawnFriendOrFoe(i+direction, j+1, opponentColor);

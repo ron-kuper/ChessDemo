@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:chess_demo/models/piece.dart';
 import 'package:chess_demo/models/move.dart';
 import 'package:chess_demo/models/threat_checker.dart';
+import 'package:chess_demo/models/openings.dart';
 
 class Coord {
   int i, j;
@@ -17,17 +18,17 @@ class BoardModel extends ChangeNotifier {
   List<Move> _moves = <Move>[];
 
   // Keep track of which pawn are vulnerable to en passant next turn
-  Pawn? _lightPawnEnPassant;
-  Pawn? _darkPawnEnPassant;
-  bool isEnPassantPawn(Pawn p) =>_darkPawnEnPassant == p || _lightPawnEnPassant == p;
+  Pawn? _whitePawnEnPassant;
+  Pawn? _blackPawnEnPassant;
+  bool isEnPassantPawn(Pawn p) =>_blackPawnEnPassant == p || _whitePawnEnPassant == p;
 
   // Keep track of whose move it is
-  PieceColor _whoseMove = PieceColor.light;
+  PieceColor _whoseMove = PieceColor.white;
   PieceColor get whoseMove => _whoseMove;
 
   // Keep track of each king's position so we don't have to find it to compute checks
-  Coord lightKingLoc = Coord(0, 4);
-  Coord darkKingLoc = Coord(7, 4);
+  Coord whiteKingLoc = Coord(0, 4);
+  Coord blackKingLoc = Coord(7, 4);
 
   BoardModel() {
     reset();
@@ -35,44 +36,44 @@ class BoardModel extends ChangeNotifier {
 
   void reset() {
     _squares = List.generate(8, (i) => List.generate(8, (j) => null, growable: false), growable: false);
-    const PieceColor l = PieceColor.light;
-    const PieceColor d = PieceColor.dark;
-    _squares[7] = [Rook(this, l),
-      Knight(this, l),
-      Bishop(this, l),
-      Queen(this, l),
-      King(this, l),
-      Bishop(this, l),
-      Knight(this, l),
-      Rook(this, l)
+    const PieceColor w = PieceColor.white;
+    const PieceColor b = PieceColor.black;
+    _squares[7] = [Rook(this, w),
+      Knight(this, w),
+      Bishop(this, w),
+      Queen(this, w),
+      King(this, w),
+      Bishop(this, w),
+      Knight(this, w),
+      Rook(this, w)
     ];
-    _squares[6] = List.generate(8, (i) => Pawn(this, l), growable: false);
-    _squares[1] = List.generate(8, (i) => Pawn(this, d), growable: false);
+    _squares[6] = List.generate(8, (i) => Pawn(this, w), growable: false);
+    _squares[1] = List.generate(8, (i) => Pawn(this, b), growable: false);
     _squares[0] = [
-      Rook(this, d),
-      Knight(this, d),
-      Bishop(this, d),
-      Queen(this, d),
-      King(this, d),
-      Bishop(this, d),
-      Knight(this, d),
-      Rook(this, d)
+      Rook(this, b),
+      Knight(this, b),
+      Bishop(this, b),
+      Queen(this, b),
+      King(this, b),
+      Bishop(this, b),
+      Knight(this, b),
+      Rook(this, b)
     ];
     _moves = <Move>[];
-    _whoseMove = PieceColor.light;
-    lightKingLoc = Coord(7, 4);
-    darkKingLoc = Coord(0, 4);
+    _whoseMove = PieceColor.white;
+    whiteKingLoc = Coord(7, 4);
+    blackKingLoc = Coord(0, 4);
     notifyListeners();
   }
 
   BoardModel.from(BoardModel other) {
     _squares = other._squares.map((element) => List.from(element)).toList(growable: false).cast();
     _moves = other._moves.map((e) => e).toList();
-    _lightPawnEnPassant = other._lightPawnEnPassant;
-    _darkPawnEnPassant = other._darkPawnEnPassant;
+    _whitePawnEnPassant = other._whitePawnEnPassant;
+    _blackPawnEnPassant = other._blackPawnEnPassant;
     _whoseMove = other._whoseMove;
-    lightKingLoc = other.lightKingLoc;
-    darkKingLoc = other.darkKingLoc;
+    whiteKingLoc = other.whiteKingLoc;
+    blackKingLoc = other.blackKingLoc;
   }
 
   Piece? get(int i, int j) {
@@ -101,36 +102,36 @@ class BoardModel extends ChangeNotifier {
 
     // Keep track of the king's position
     if (p is King) {
-      if (p.isLight) {
-        lightKingLoc = move.to;
+      if (p.isWhite) {
+        whiteKingLoc = move.to;
       } else {
-        darkKingLoc = move.to;
+        blackKingLoc = move.to;
       }
     }
 
     // Once a piece has moved, en passant capture is no longer possible from
     // the last possible pawn move
-    if (p.isLight) {
-      _darkPawnEnPassant = null;
+    if (p.isWhite) {
+      _blackPawnEnPassant = null;
     } else {
-      _lightPawnEnPassant = null;
+      _whitePawnEnPassant = null;
     }
 
     // Flag pawns that can be captured en passant
     if (p is Pawn) {
       if (move.from.i - move.to.i == 2 || move.from.i - move.to.i == -2) {
-        if (p.isLight) {
-          _lightPawnEnPassant = p;
+        if (p.isWhite) {
+          _whitePawnEnPassant = p;
         } else {
-          _darkPawnEnPassant = p;
+          _blackPawnEnPassant = p;
         }
       }
     }
 
     // See if this move is check/checkmate
     PieceColor myColor = p.color;
-    PieceColor opponentColor = p.isLight ? PieceColor.dark : PieceColor.light;
-    Coord oppoKingLoc = opponentColor == PieceColor.dark ? darkKingLoc : lightKingLoc;
+    PieceColor opponentColor = p.isWhite ? PieceColor.black : PieceColor.white;
+    Coord oppoKingLoc = opponentColor == PieceColor.black ? blackKingLoc : whiteKingLoc;
     if (hasThreat(oppoKingLoc.i, oppoKingLoc.j, myColor)) {
       // At least check... is it also mate?
       bool freeSquare = false;
@@ -149,24 +150,51 @@ class BoardModel extends ChangeNotifier {
     _moves.add(move);
 
     // Other side's move
-    _whoseMove = whoseMove == PieceColor.light ? PieceColor.dark : PieceColor.light;
+    _whoseMove = whoseMove == PieceColor.white ? PieceColor.black : PieceColor.white;
 
-    debugPrint(moveListToString());
+    debugPrint(moveListToUCI());
+
+    String url = 'https://explorer.lichess.ovh/masters?play=' + moveListToUCI();
+    Openings? openings;
+    try {
+      Future<Openings>? future = Openings.fetchOpenings(url);
+      future!.then((o) {
+        debugPrint('Got openings!');
+        openings = o;
+      }).catchError((e) {
+        debugPrint('Future error: ' + e.toString());
+      });
+    } catch (e) {
+      debugPrint('Fetch exception: ' + e.toString());
+    }
+
     notifyListeners();
     return true;
   }
 
-  String moveListToString() {
+  String moveListToAlgebraic() {
     String ret = '';
     int moveNum = 1;
     for (int i = 0; i < _moves.length; i++) {
       if (i % 2 == 0) {
         ret = ret + moveNum.toString() + '. ';
       }
-      ret = ret + _moves[i].toString() + ' ';
+      ret = ret + _moves[i].toAlgebraic() + ' ';
       if (i % 2 == 1) {
         moveNum++;
       }
+    }
+    return ret;
+  }
+
+  String moveListToUCI() {
+    String ret = '';
+    int moveNum = 1;
+    for (int i = 0; i < _moves.length; i++) {
+      if (i > 0) {
+        ret = ret + ',';
+      }
+      ret = ret + _moves[i].toUCI();
     }
     return ret;
   }
